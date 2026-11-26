@@ -1,0 +1,82 @@
+#!/usr/bin/python3
+# SPDX-FileCopyrightText: 2026 Kota Matsunaga
+# SPDX-License-Identifier: BSD-3-Clause
+
+import argparse
+import re
+import sys
+import unicodedata
+
+KUTEN_PATTERN = re.compile(r"[。．｡]+")
+TOUTEN_PATTERN = re.compile(r"[、，､]+")
+WHITESPACE_PATTERN = re.compile(r"[ \t\u3000]+")
+
+
+def to_halfwidth_alnum(text: str) -> str:
+    result: list[str] = []
+    for ch in text:
+        code = ord(ch)
+        # Fullwidth ASCII variants (0xFF01..0xFF5E) -> ASCII (0x21..0x7E)
+        if 0xFF01 <= code <= 0xFF5E:
+            result.append(chr(code - 0xFEE0))
+        else:
+            result.append(unicodedata.normalize("NFC", ch))
+    return "".join(result)
+
+
+def format_line(
+    line: str,
+    hankaku: bool = True,
+    punct: bool = True,
+    space: bool = True,
+) -> str:
+    text = line.rstrip("\r\n")
+    if hankaku:
+        text = to_halfwidth_alnum(text)
+    if punct:
+        text = KUTEN_PATTERN.sub("。", text)
+        text = TOUTEN_PATTERN.sub("、", text)
+    if space:
+        text = WHITESPACE_PATTERN.sub(" ", text).strip()
+    return text
+
+
+def parse_args(argv: list[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        prog="seikei",
+        description="Normalize full/half-width characters, punctuation, and whitespace from standard input.",
+    )
+    parser.add_argument(
+        "--no-hankaku",
+        action="store_true",
+        help="do not convert full-width ASCII characters to half-width",
+    )
+    parser.add_argument(
+        "--no-punct",
+        action="store_true",
+        help="do not unify punctuation marks to '、' and '。'",
+    )
+    parser.add_argument(
+        "--no-space",
+        action="store_true",
+        help="do not trim or collapse consecutive whitespace",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(sys.argv[1:] if argv is None else argv)
+    for raw_line in sys.stdin:
+        print(
+            format_line(
+                raw_line,
+                hankaku=not args.no_hankaku,
+                punct=not args.no_punct,
+                space=not args.no_space,
+            )
+        )
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
