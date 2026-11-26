@@ -7,8 +7,8 @@ import re
 import sys
 import unicodedata
 
-KUTEN_PATTERN = re.compile(r"[。．｡]+")
-TOUTEN_PATTERN = re.compile(r"[、，､]+")
+KUTEN_PATTERN = re.compile(r"[。．｡.]+")
+TOUTEN_PATTERN = re.compile(r"[、，､,]+")
 WHITESPACE_PATTERN = re.compile(r"[ \t\u3000]+")
 
 
