@@ -13,7 +13,7 @@ res=0
 
 # 1. Default normalization (fullwidth alnum -> halfwidth, punctuation -> 、/。, whitespace cleanup)
 out=$(printf "  ＲＯＳ２の期限は １１月２６日,２３：５５です.  \n" | ./seikei)
-exp="ROS2の 期限は 11月26日、23:55です。"
+exp="ROS2の期限は 11月26日、23:55です。"
 [ "$out" = "$exp" ] || ng "$LINENO" "expected '$exp', got '$out'"
 
 # 2. --no-hankaku keeps fullwidth ASCII
